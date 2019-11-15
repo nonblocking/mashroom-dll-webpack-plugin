@@ -1,0 +1,30 @@
+{
+    "name": "@mashroom/mashroom-dll-webpack-plugin",
+    "description": "Webpack plugin that adds DLLs as global resources to Mashroom Portal Apps",
+    "homepage": "https://www.mashroom-server.com",
+    "repository": "github:nonblocking/mashroom-dll-webpack-plugin",
+    "version": "1.0.0",
+    "license": "MIT",
+    "main": "dist",
+    "dependencies": {
+        "safe-require": "^1.0.3",
+        "fs-extra": "^8.1.0"
+    },
+    "devDependencies": {
+        "@mashroom/mashroom": "^1.1.4",
+        "@mashroom/mashroom-portal": "^1.1.4",
+        "flow-remove-types": "^2.111.3",
+        "@babel/core": "^7.6.4",
+        "babel-eslint": "^10.0.3",
+        "eslint": "^6.6.0",
+        "eslint-plugin-flowtype": "^4.3.0",
+        "eslint-plugin-jest": "^23.0.2",
+        "flow-bin": "0.109.0",
+        "webpack": "^4.41.2"
+    },
+    "scripts": {
+        "flow": "flow check",
+        "lint": "eslint --fix src",
+        "build": "flow-remove-types src -d dist"
+    }
+}
