@@ -92,7 +92,7 @@ This configuration is going to copy the DLL (my_dll.js) copy to the output path 
 
 ## Demo
 
-Check out the [Mashroom Demo Shared Dll](https://github.com/nonblocking/mashroom-demo-shared-dll) repo.
+See [Mashroom Demo Shared DLL](https://github.com/nonblocking/mashroom-demo-shared-dll).
 
 
 
