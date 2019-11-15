@@ -39,7 +39,7 @@ module.exports = {
 
 ### Using the DLL
 
-On the other side use the *webpack* *DllReferencePlugin* and this plugin to add the library as *shared* *resource* to 
+On the other side use the *webpack* *DllReferencePlugin* and this plugin to add the library as *sharedResource* to 
 the Portal App:
 
 ```js
@@ -62,7 +62,7 @@ module.exports = {
 }
 ```
 
-This configuration will the DLL (my_dll.js) copy to the output path and add it to the *Mashroom* config in *package.json* like this:
+This configuration is going to copy the DLL (my_dll.js) copy to the output path and adds it to the *Mashroom* config in *package.json* like this:
 
 ```json
     "mashroom": {
