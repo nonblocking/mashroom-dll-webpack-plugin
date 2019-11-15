@@ -1,7 +1,7 @@
 
 # Mashroom DLL Webpack Plugin
 
-Webpack plugin that adds *DLLs* as global resources to [Mashroom Server](https://www.mashroom-server.com) Portal Apps.
+Webpack plugin that adds *DLLs* as shared resources to [Mashroom Server](https://www.mashroom-server.com) Portal Apps.
 
 This is useful to share vendor libraries (e.g. React) between multiple Apps, which drastically reduces the bundle sizes.
 
