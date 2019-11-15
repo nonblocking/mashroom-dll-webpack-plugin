@@ -1,10 +1,13 @@
 {
     "name": "@mashroom/mashroom-dll-webpack-plugin",
-    "description": "Webpack plugin that adds DLLs as global resources to Mashroom Portal Apps",
+    "description": "Webpack plugin that adds DLLs as shared resources to Mashroom Portal App configurations",
     "homepage": "https://www.mashroom-server.com",
     "repository": "github:nonblocking/mashroom-dll-webpack-plugin",
     "version": "1.0.0",
     "license": "MIT",
+    "files": [
+        "dist/**"
+    ],
     "main": "dist",
     "dependencies": {
         "safe-require": "^1.0.3",
