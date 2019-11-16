@@ -42,7 +42,7 @@ In your App module add this plugin to the dependencies:
 ```json
 {
     "devDependencies": {
-        "@mashroom/mashroom-dll-webpack-plugin": "^1.0.0"
+        "@mashroom/mashroom-dll-webpack-plugin": "^1.0.1"
     }
 }
 ```
