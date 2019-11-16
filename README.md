@@ -7,13 +7,11 @@ This is useful to share vendor libraries (e.g. React) between multiple Apps, whi
 
 ## Usage
 
-Please read the  documentation first.
-
 ### Bundling the DLL
 
 There is nothing specific here, just follow the [DLLPlugin](https://webpack.js.org/plugins/dll-plugin/) documentation.
 
-To bundle React and Redux your *webpack* config would look like this:
+To bundle React and Redux the *webpack* config in the DLL module would look like this:
 
 ```js
 const path = require('path');
@@ -39,7 +37,17 @@ module.exports = {
 
 ### Using the DLL
 
-On the other side use the *webpack* *DllReferencePlugin* and this plugin to add the library as *sharedResource* to 
+In your App module add this plugin to the dependencies:
+
+```json
+{
+    "devDependencies": {
+        "@mashroom/mashroom-dll-webpack-plugin": "^1.0.0"
+    }
+}
+```
+
+And use the *webpack* *DllReferencePlugin* and this plugin to add the library as *sharedResource* to 
 the Portal App:
 
 ```js
@@ -62,7 +70,7 @@ module.exports = {
 }
 ```
 
-This configuration is going to copy the DLL (my_dll.js) copy to the output path and adds it to the *Mashroom* config in *package.json* like this:
+This configuration is going to copy the DLL (my_dll.js) to the output path and adds it to the *Mashroom* config in *package.json* like this:
 
 ```json
     "mashroom": {
