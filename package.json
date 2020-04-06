@@ -3,7 +3,7 @@
     "description": "Webpack plugin that adds DLLs as shared resources to a Mashroom Portal App configuration",
     "homepage": "https://www.mashroom-server.com",
     "repository": "github:nonblocking/mashroom-dll-webpack-plugin",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "license": "MIT",
     "files": [
         "dist/**"
