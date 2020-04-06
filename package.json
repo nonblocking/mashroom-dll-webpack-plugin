@@ -16,7 +16,7 @@
     "devDependencies": {
         "@mashroom/mashroom": "^1.4.0",
         "@mashroom/mashroom-portal": "^1.4.0",
-        "flow-remove-types": "^2.122.0",
+        "flow-remove-types": "2.112.0",
         "@babel/core": "^7.9.0",
         "babel-eslint": "^10.1.0",
         "eslint": "^6.8.0",
