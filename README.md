@@ -42,12 +42,12 @@ In your App module add this plugin to the dependencies:
 ```json
 {
     "devDependencies": {
-        "@mashroom/mashroom-dll-webpack-plugin": "^1.0.1"
+        "@mashroom/mashroom-dll-webpack-plugin": "^1.0.2"
     }
 }
 ```
 
-And use the *webpack* *DllReferencePlugin* and this plugin to add the library as *sharedResource* to 
+And use the *webpack* *DllReferencePlugin* and this plugin to add the library as *sharedResource* to
 the Portal App:
 
 ```js
