@@ -1,17 +1,20 @@
 {
-    "parser": "babel-eslint",
+    "parser": "@typescript-eslint/parser",
     "plugins": [
-        "flowtype"
+        "@typescript-eslint/eslint-plugin"
     ],
     "extends": [
-        "eslint:recommended"
+        "eslint:recommended",
+        "plugin:@typescript-eslint/recommended"
     ],
     "env": {
         "node": true,
         "browser": false,
-        "es6": true,
+        "es6": false,
         "jest": true
     },
     "rules": {
+        "@typescript-eslint/ban-ts-comment": "off",
+        "@typescript-eslint/no-var-requires": "off"
     }
 }

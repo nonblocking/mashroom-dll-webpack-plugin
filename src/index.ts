@@ -1,5 +1,4 @@
-// @flow
 
 const plugin = require('./MashroomDLLWebpackPlugin');
 
-module.exports = plugin;
+module.exports = plugin.default;

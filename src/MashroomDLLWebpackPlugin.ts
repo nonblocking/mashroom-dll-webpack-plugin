@@ -1,28 +1,32 @@
-// @flow
 
-const {resolve, basename} = require('path');
-const {statSync, existsSync, readFileSync} = require('fs');
-const {readJsonSync, writeJsonSync} = require('fs-extra');
+import {resolve, basename} from 'path';
+import {statSync, existsSync, readFileSync} from 'fs';
+import {readJsonSync, writeJsonSync} from 'fs-extra';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
 
+import type { Plugin, Compiler, compilation } from 'webpack';
 import type { MashroomPluginDefinition } from '@mashroom/mashroom/type-definitions';
 import type { MashroomPortalAppResources } from '@mashroom/mashroom-portal/type-definitions';
 
 type Config = {
     manifest: {
         name: string,
-        content: {}
+        content: any,
     },
     dllPath: string,
 }
 
 const DEFAULT_CONFIG = {};
 
-class MashroomWebDLLWebpackPlugin {
+export default class MashroomWebDLLWebpackPlugin implements Plugin {
 
     _config: Config;
 
     constructor(config: Config) {
-        this._config = Object.assign({}, DEFAULT_CONFIG, config);
+        this._config = {
+            ...DEFAULT_CONFIG,
+            ...config
+        };
         if (!this._config.manifest) {
             throw new Error('MashroomWebDLLWebpackPlugin: manifest property is required!');
         }
@@ -37,7 +41,23 @@ class MashroomWebDLLWebpackPlugin {
         }
     }
 
-    addDllAsAsset(dllTargetName: string, compilation: any) {
+    apply(compiler: Compiler): void {
+        const dllTargetName = this._config.manifest.name + '.js';
+
+        let done = false;
+
+        compiler.hooks.afterCompile.tap('MashroomWebDLLWebpackPlugin', (compilation: compilation.Compilation) => {
+            if (!done) {
+                this.addDllAsAsset(dllTargetName, compilation);
+                this.addToMashroomPluginConfig(dllTargetName);
+                done = true;
+            }
+
+            this.addDllToHtmlPluginIfPresent(dllTargetName, compilation);
+        });
+    }
+
+    private addDllAsAsset(dllTargetName: string, compilation: compilation.Compilation): void  {
         const stats = statSync(this._config.dllPath);
         compilation.assets[dllTargetName] = {
             source: () =>  readFileSync(this._config.dllPath),
@@ -45,33 +65,23 @@ class MashroomWebDLLWebpackPlugin {
         };
     }
 
-    addDllToHtmlPluginIfPresent(dllTargetName: string, compilation: any) {
+    private addDllToHtmlPluginIfPresent(dllTargetName: string, compilation: compilation.Compilation): void  {
 
-        const onBeforeHtmlGeneration = (htmlPluginData: any) => {
-            const { assets: { js } } = htmlPluginData;
+        // @ts-ignore
+        const htmlPlugins = compilation.options.plugins.filter(plugin => plugin instanceof HtmlWebpackPlugin);
+        if (htmlPlugins.length === 0) {
+            throw new Error('MashroomWebDLLWebpackPlugin: The html-webpack-plugin must be defined before the MashroomDLLWebpackPlugin!');
+        }
+        const hooks = HtmlWebpackPlugin.getHooks(compilation);
+        hooks.beforeAssetTagGeneration.tap('htmlWebpackTagsPlugin', (data) => {
+            const { assets: { js } } = data;
             // Add the Dll resource as very first entry
             js.splice(0, 0, dllTargetName);
-        };
-
-        if (compilation.hooks) {
-            // HtmlWebPackPlugin new
-            if (compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration) {
-                compilation.hooks.htmlWebpackPluginBeforeHtmlGeneration.tap('htmlWebpackTagsPlugin', onBeforeHtmlGeneration);
-            } else {
-                const HtmlWebpackPlugin = require('safe-require')('html-webpack-plugin');
-                if (HtmlWebpackPlugin && HtmlWebpackPlugin.getHooks) {
-                    const hooks = HtmlWebpackPlugin.getHooks(compilation);
-                    const htmlPlugins = compilation.options.plugins.filter(plugin => plugin instanceof HtmlWebpackPlugin);
-                    if (htmlPlugins.length === 0) {
-                        throw new Error('MashroomWebDLLWebpackPlugin: The html-webpack-plugin must be defined before the MashroomDLLWebpackPlugin!');
-                    }
-                    hooks.beforeAssetTagGeneration.tap('htmlWebpackTagsPlugin', onBeforeHtmlGeneration);
-                }
-            }
-        }
+            return data;
+        });
     }
 
-    addToMashroomPluginConfig(dllTargetName: string) {
+    private addToMashroomPluginConfig(dllTargetName: string): void  {
         const packageJsonPath = resolve(process.cwd(), 'package.json');
 
         if (!existsSync(packageJsonPath)) {
@@ -114,10 +124,11 @@ class MashroomWebDLLWebpackPlugin {
 
                 jsResources.push(dllTargetName);
 
-                // $FlowFixMe
-                portalApp.sharedResources = Object.assign({}, sharedResources, {
+                // @ts-ignore
+                portalApp.sharedResources = {
+                    ...sharedResources,
                     js: jsResources,
-                });
+                };
             }
         });
 
@@ -128,22 +139,6 @@ class MashroomWebDLLWebpackPlugin {
         }
     }
 
-    apply(compiler: any) {
-        const dllTargetName = this._config.manifest.name + '.js';
-
-        let done = false;
-
-        compiler.hooks.afterCompile.tap('MashroomWebDLLWebpackPlugin', (compilation: any) => {
-            if (!done) {
-                this.addDllAsAsset(dllTargetName, compilation);
-                this.addToMashroomPluginConfig(dllTargetName);
-                done = true;
-            }
-
-            this.addDllToHtmlPluginIfPresent(dllTargetName, compilation);
-		});
-    }
 
 }
 
-module.exports = MashroomWebDLLWebpackPlugin;
