@@ -1,12 +1,17 @@
 
 import {resolve, basename} from 'path';
-import {statSync, existsSync, readFileSync} from 'fs';
+import {existsSync, readFileSync} from 'fs';
 import {readJsonSync, writeJsonSync} from 'fs-extra';
+import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 
-import type { Plugin, Compiler, compilation } from 'webpack';
+import type { Compiler, Compilation } from 'webpack';
 import type { MashroomPluginDefinition } from '@mashroom/mashroom/type-definitions';
 import type { MashroomPortalAppResources } from '@mashroom/mashroom-portal/type-definitions';
+
+interface WebpackPlugin {
+    apply(compiler: Compiler): void;
+}
 
 type Config = {
     manifest: {
@@ -18,9 +23,9 @@ type Config = {
 
 const DEFAULT_CONFIG = {};
 
-export default class MashroomWebDLLWebpackPlugin implements Plugin {
+export default class MashroomWebDLLWebpackPlugin implements WebpackPlugin {
 
-    _config: Config;
+    private _config: Config;
 
     constructor(config: Config) {
         this._config = {
@@ -46,7 +51,7 @@ export default class MashroomWebDLLWebpackPlugin implements Plugin {
 
         let done = false;
 
-        compiler.hooks.afterCompile.tap('MashroomWebDLLWebpackPlugin', (compilation: compilation.Compilation) => {
+        compiler.hooks.compilation.tap('MashroomWebDLLWebpackPlugin', (compilation: Compilation) => {
             if (!done) {
                 this.addDllAsAsset(dllTargetName, compilation);
                 this.addToMashroomPluginConfig(dllTargetName);
@@ -57,23 +62,18 @@ export default class MashroomWebDLLWebpackPlugin implements Plugin {
         });
     }
 
-    private addDllAsAsset(dllTargetName: string, compilation: compilation.Compilation): void  {
-        const stats = statSync(this._config.dllPath);
-        compilation.assets[dllTargetName] = {
-            source: () =>  readFileSync(this._config.dllPath),
-            size: () => stats.size
-        };
+    private addDllAsAsset(dllTargetName: string, compilation: Compilation): void  {
+        const { RawSource } = webpack.sources;
+        compilation.assets[dllTargetName] = new RawSource(readFileSync(this._config.dllPath));
     }
 
-    private addDllToHtmlPluginIfPresent(dllTargetName: string, compilation: compilation.Compilation): void  {
-
-        // @ts-ignore
+    private addDllToHtmlPluginIfPresent(dllTargetName: string, compilation: Compilation): void  {
         const htmlPlugins = compilation.options.plugins.filter(plugin => plugin instanceof HtmlWebpackPlugin);
         if (htmlPlugins.length === 0) {
-            throw new Error('MashroomWebDLLWebpackPlugin: The html-webpack-plugin must be defined before the MashroomDLLWebpackPlugin!');
+            throw new Error('MashroomWebDLLWebpackPlugin: The html-webpack-plugin must be present!');
         }
         const hooks = HtmlWebpackPlugin.getHooks(compilation);
-        hooks.beforeAssetTagGeneration.tap('htmlWebpackTagsPlugin', (data) => {
+        hooks.beforeAssetTagGeneration.tap('MashroomWebDLLWebpackPlugin', (data) => {
             const { assets: { js } } = data;
             // Add the Dll resource as very first entry
             js.splice(0, 0, dllTargetName);
@@ -82,27 +82,38 @@ export default class MashroomWebDLLWebpackPlugin implements Plugin {
     }
 
     private addToMashroomPluginConfig(dllTargetName: string): void  {
-        const packageJsonPath = resolve(process.cwd(), 'package.json');
+        const packageJsonFile = resolve(process.cwd(), 'package.json');
+        const mashroomJsonFile = resolve(process.cwd(), 'mashroom.json');
 
-        if (!existsSync(packageJsonPath)) {
-            throw new Error('MashroomWebDLLWebpackPlugin: Not found: ' + packageJsonPath);
+        let pluginDefinitionFile = packageJsonFile;
+        if (existsSync(mashroomJsonFile)) {
+            pluginDefinitionFile = mashroomJsonFile;
+        }
+
+        if (!existsSync(pluginDefinitionFile)) {
+            throw new Error('MashroomWebDLLWebpackPlugin: Plugin definition file not found: ' + pluginDefinitionFile);
         }
 
         let spaces = '  ';
-        const lines = readFileSync(packageJsonPath).toString('utf-8').split('\n');
+        const lines = readFileSync(pluginDefinitionFile).toString('utf-8').split('\n');
         const firstLinesSpacesMatch = lines[1].match(/^(\s*)/);
         if (firstLinesSpacesMatch) {
             spaces = firstLinesSpacesMatch[0];
         }
 
-        const packageJson = readJsonSync(packageJsonPath);
-
-        if (!packageJson.mashroom || !packageJson.mashroom.plugins) {
-            throw new Error('MashroomWebDLLWebpackPlugin: No Mashroom plugin definition found in package.json');
+        const pluginsDef = readJsonSync(pluginDefinitionFile);
+        let plugins: Array<MashroomPluginDefinition>;
+        if (pluginDefinitionFile === mashroomJsonFile) {
+            plugins = pluginsDef.plugins;
+        } else {
+            plugins = pluginsDef.mashroom?.plugins
         }
 
-        const plugins: Array<MashroomPluginDefinition> = packageJson.mashroom.plugins;
-        const portalApps = plugins.filter((plugin) => plugin.type === 'portal-app');
+        if (!plugins) {
+            throw new Error('MashroomWebDLLWebpackPlugin: No Mashroom plugin definitions found!');
+        }
+
+        const portalApps = plugins.filter((plugin) => plugin.type === 'portal-app' || plugin.type === 'portal-app2');
 
         if (portalApps.length === 0) {
             console.warn('MashroomWebDLLWebpackPlugin: No portal-app plugin found in package.json');
@@ -133,9 +144,15 @@ export default class MashroomWebDLLWebpackPlugin implements Plugin {
         });
 
         if (change) {
-            writeJsonSync(packageJsonPath, packageJson, {
-                spaces
-            });
+            if (pluginDefinitionFile === mashroomJsonFile) {
+                writeJsonSync(mashroomJsonFile, pluginsDef, {
+                    spaces
+                });
+            } else {
+                writeJsonSync(packageJsonFile, pluginsDef, {
+                    spaces
+                });
+            }
         }
     }
 

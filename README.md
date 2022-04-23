@@ -101,6 +101,3 @@ This configuration is going to copy the DLL (my_dll.js) to the output path and a
 ## Demo
 
 See [Mashroom Demo Shared DLL](https://github.com/nonblocking/mashroom-demo-shared-dll)
-
-
-
