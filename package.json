@@ -17,8 +17,8 @@
         "html-webpack-plugin": "^5"
     },
     "devDependencies": {
-        "@mashroom/mashroom": "^2.0.0-alpha.4",
-        "@mashroom/mashroom-portal": "^2.0.0-alpha.4",
+        "@mashroom/mashroom": "^2.0.0",
+        "@mashroom/mashroom-portal": "^2.0.0",
         "webpack": "^5.72.0",
         "html-webpack-plugin": "^5.5.0",
         "eslint": "^8.14.0",
